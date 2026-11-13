@@ -9,7 +9,7 @@ Não precisa de servidor próprio: as regras de negócio ficam no banco (funçõ
 |---|---|---|
 | 1 | Banco de dados, RLS, loja pública (home, catálogo, produto, carrinho) | ✅ concluída |
 | 2 | Painel administrativo: login, dashboard, produtos, imagens, variações, categorias, CSV, configurações | ✅ concluída |
-| 3 | — | aguardando |
+| 3 | Estoque, carrinho, checkout pelo WhatsApp, pedidos, baixa e estorno | ✅ concluída |
 | 4 | — | aguardando |
 
 ## Estrutura
@@ -22,6 +22,8 @@ supabase/migrations/
   004_storage.sql       bucket público "media" para imagens
   005_create_admin.sql  promove um usuário a administrador
   006_admin.sql         estoque mínimo/baixo, disponibilidade, dashboard, duplicação, importação CSV
+  007_orders_stock.sql  checkout (cidade/bairro), status de pedidos, baixa atômica, estorno,
+                        movimentações (tipos, antes/depois, responsável), mínimo por variação
 src/
   lib/          supabase.ts (cliente), api.ts (consultas), format.ts
   types/        db.ts (tipos das tabelas)
@@ -43,8 +45,8 @@ public/_redirects  rotas SPA no Cloudflare Pages
 
 1. Crie um projeto gratuito em <https://supabase.com>.
 2. Abra **SQL Editor → New query** e execute, **nesta ordem**, o conteúdo de:
-   `001_schema.sql`, `002_functions.sql`, `003_rls.sql`, `004_storage.sql`, `006_admin.sql`.
-   (Se você já executou 001–004 na Etapa 1, execute apenas o `006_admin.sql`.)
+   `001_schema.sql`, `002_functions.sql`, `003_rls.sql`, `004_storage.sql`, `006_admin.sql`
+   e `007_orders_stock.sql`. Se você já executou os anteriores, execute apenas os que faltam, em ordem.
    Os scripts podem ser executados novamente sem duplicar dados.
 3. Crie o administrador:
    - **Authentication → Users → Add user** (e-mail e senha, marque *Auto Confirm User*);
@@ -91,6 +93,29 @@ O e-mail embutido do Supabase tem limite baixo de envios por hora. Para uso cont
 **Estoque baixo:** defina o “estoque mínimo” do produto (0 = sem alerta). Em produtos com variações, o alerta aparece quando qualquer variação ativa atinge o mínimo.
 
 **Disponível para venda × Publicado:** um *rascunho* não aparece na loja. Um produto *indisponível* aparece, mas não pode ser comprado (também é bloqueado no banco).
+
+### Pedidos e estoque
+
+**Fluxo do pedido**
+
+1. O cliente monta o carrinho (salvo no navegador). Ao abrir o carrinho e o checkout, preços e estoque são **conferidos de novo no banco** (`quote_cart`). Preço alterado, item esgotado ou quantidade acima do estoque são avisados e corrigidos.
+2. No checkout (sem cadastro) o cliente informa nome, telefone (opcional), cidade, bairro, endereço (opcional) e observações. Em seguida revisa o pedido.
+3. Ao confirmar, `create_order` **recalcula tudo no banco** e registra o pedido como **Aguardando confirmação**. Os itens guardam nome, variação, preço e subtotal do momento da compra. **O estoque não é descontado nem reservado.**
+4. O WhatsApp é aberto com a mensagem pronta para o número configurado em *Configurações*. Se o navegador bloquear, a tela do pedido oferece **Abrir WhatsApp** e **Copiar dados do pedido**. O cliente ainda precisa **enviar** a mensagem.
+
+**No painel (Pedidos)**
+
+| Status | Efeito no estoque |
+|---|---|
+| Aguardando confirmação → **Confirmado** | Baixa atômica: confere todos os itens, desconta e registra as movimentações ligadas ao pedido. Se faltar estoque, nada é alterado e os itens a ajustar são listados. |
+| Confirmado → Em preparação → Finalizado | Nenhum |
+| **Cancelado** (antes da baixa) | Nenhum |
+| **Cancelado** (após a baixa) | Opcionalmente estorna na hora; senão, o botão **Estornar estoque** fica disponível. O estorno só pode ocorrer uma vez. |
+
+Repetir a mesma ação (clique duplo, página desatualizada) não tem efeito. As linhas de estoque ficam travadas durante a confirmação: se dois pedidos disputam a última unidade, só o primeiro a ser confirmado leva, e o segundo é recusado com aviso.
+
+**Estoque (painel)**: lista produtos e variações com estoque, mínimo e situação. **Movimentar** permite *Adicionar*, *Retirar* (motivo obrigatório), *Registrar venda* (fora do site) e *Ajustar quantidade* (motivo obrigatório). **Mínimo** define o estoque mínimo do produto ou de cada variação (vazio = usa o do produto).
+Cada movimentação registra data, produto, variação, tipo, quantidade, estoque anterior e posterior, motivo, administrador e pedido (quando houver). Consulte em **Estoque → Histórico de movimentações**.
 
 ### CSV
 

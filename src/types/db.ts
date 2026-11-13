@@ -1,4 +1,7 @@
-export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'completed' | 'canceled'
+export type OrderStatus = 'pending' | 'confirmed' | 'preparing' | 'completed' | 'canceled'
+
+export type MovementReason =
+  | 'initial' | 'stock_in' | 'stock_out' | 'manual_sale' | 'manual_adjust' | 'order_confirmed' | 'order_reversed'
 
 export interface StoreSettings {
   id: number
@@ -51,6 +54,7 @@ export interface ProductVariant {
   price: number | null
   promo_price: number | null
   stock: number
+  min_stock?: number | null
   is_active: boolean
   sort_order: number
 }
@@ -120,18 +124,48 @@ export interface Order {
   order_number: number
   status: OrderStatus
   customer_name: string
-  customer_phone: string
+  customer_phone: string | null
+  customer_city: string | null
+  customer_neighborhood: string | null
   total: number
+  stock_applied: boolean
   created_at: string
+}
+
+export interface OrderItem {
+  id: string
+  product_id: string | null
+  variant_id: string | null
+  product_name: string
+  variant_name: string | null
+  sku: string | null
+  unit_price: number
+  quantity: number
+  line_total: number
+}
+
+export interface OrderDetail extends Order {
+  delivery_address: string | null
+  customer_notes: string | null
+  admin_notes: string | null
+  subtotal: number
+  confirmed_at: string | null
+  canceled_at: string | null
+  stock_reversed_at: string | null
+  updated_at: string
+  order_items: OrderItem[]
 }
 
 export interface StockMovement {
   id: string
   quantity_change: number
+  stock_before: number | null
   stock_after: number
-  reason: 'manual_adjust' | 'order_confirmed' | 'order_canceled'
+  reason: MovementReason
   note: string | null
   created_at: string
+  created_by_email: string | null
+  order_id: string | null
   product: { name: string } | null
   variant: { name: string } | null
   order: { order_number: number } | null

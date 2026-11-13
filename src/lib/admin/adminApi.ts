@@ -17,10 +17,10 @@ export async function getDashboard() {
   const [stats, orders, movements] = await Promise.all([
     supabase.rpc('admin_dashboard_stats'),
     supabase.from('orders')
-      .select('id, order_number, status, customer_name, customer_phone, total, created_at')
+      .select('id, order_number, status, customer_name, customer_phone, customer_city, customer_neighborhood, total, stock_applied, created_at')
       .order('created_at', { ascending: false }).limit(6),
     supabase.from('stock_movements')
-      .select('id, quantity_change, stock_after, reason, note, created_at, product:products(name), variant:product_variants(name), order:orders(order_number)')
+      .select('id, quantity_change, stock_before, stock_after, reason, note, created_at, created_by_email, order_id, product:products(name), variant:product_variants(name), order:orders(order_number)')
       .order('created_at', { ascending: false }).limit(8),
   ])
   return {

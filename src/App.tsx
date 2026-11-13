@@ -12,6 +12,9 @@ import { adminRoutes } from './pages/admin/routes'
 // Páginas carregadas sob demanda (bundle inicial menor)
 const CatalogPage = lazy(() => import('./pages/store/CatalogPage'))
 const ProductPage = lazy(() => import('./pages/store/ProductPage'))
+const CartPage = lazy(() => import('./pages/store/CartPage'))
+const CheckoutPage = lazy(() => import('./pages/store/CheckoutPage'))
+const OrderPlacedPage = lazy(() => import('./pages/store/OrderPlacedPage'))
 
 function SetupRequired() {
   return (
@@ -49,6 +52,9 @@ const router = createBrowserRouter([{
         { index: true, element: <HomePage /> },
         { path: 'catalogo', element: <CatalogPage /> },
         { path: 'produto/:slug', element: <ProductPage /> },
+        { path: 'carrinho', element: <CartPage /> },
+        { path: 'checkout', element: <CheckoutPage /> },
+        { path: 'pedido/:number', element: <OrderPlacedPage /> },
         { path: '*', element: <NotFoundPage /> },
       ],
     },

@@ -67,8 +67,12 @@ export function CartDrawer() {
                 <span className="text-sm text-ink-500">Subtotal</span>
                 <span className="text-lg font-bold tabular-nums">{formatPrice(subtotal)}</span>
               </div>
-              <p className="mt-1 text-xs text-ink-400">Valores e disponibilidade são confirmados ao finalizar o pedido.</p>
-              <button onClick={close} className="btn-secondary mt-4 w-full">Continuar comprando</button>
+              <p className="mt-1 text-xs text-ink-400">Preços e estoque são conferidos novamente ao finalizar.</p>
+              <Link to="/checkout" onClick={close} className="btn-primary mt-4 w-full">Finalizar pedido</Link>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <Link to="/carrinho" onClick={close} className="btn-secondary h-10 text-sm">Ver carrinho</Link>
+                <button onClick={close} className="btn-secondary h-10 text-sm">Continuar comprando</button>
+              </div>
             </div>
           </>
         )}

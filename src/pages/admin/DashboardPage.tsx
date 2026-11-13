@@ -4,24 +4,11 @@ import { getDashboard } from '../../lib/admin/adminApi'
 import { friendlyError } from '../../lib/admin/errors'
 import { formatDateTime } from '../../lib/admin/text'
 import { formatPrice } from '../../lib/format'
-import type { DashboardStats, Order, OrderStatus, StockMovement } from '../../types/db'
+import type { DashboardStats, Order, StockMovement } from '../../types/db'
+import { MOVEMENT_REASON, ORDER_STATUS } from '../../lib/admin/labels'
 import { Badge, Card, PageHeader } from '../../components/admin/Form'
 import { ErrorState, Spinner } from '../../components/ui/Feedback'
 import { PlusIcon } from '../../components/ui/Icons'
-
-export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: 'amber' | 'blue' | 'green' | 'gray' | 'red' }> = {
-  pending: { label: 'Pendente', tone: 'amber' },
-  confirmed: { label: 'Confirmado', tone: 'blue' },
-  shipped: { label: 'Enviado', tone: 'blue' },
-  completed: { label: 'Concluído', tone: 'green' },
-  canceled: { label: 'Cancelado', tone: 'red' },
-}
-
-export const MOVEMENT_REASON: Record<StockMovement['reason'], string> = {
-  manual_adjust: 'Ajuste manual',
-  order_confirmed: 'Pedido confirmado',
-  order_canceled: 'Pedido cancelado',
-}
 
 function Stat({ label, value, to, tone }: { label: string; value: number; to: string; tone?: 'red' | 'amber' | 'accent' }) {
   const color = tone === 'red' ? 'text-red-600' : tone === 'amber' ? 'text-amber-600' : tone === 'accent' ? 'text-accent' : 'text-ink-900'
@@ -76,11 +63,12 @@ export default function DashboardPage() {
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <Card title="Pedidos recentes" description={stats.pending_orders ? `${stats.pending_orders} pendente(s) de confirmação` : undefined}>
+        <Card title="Pedidos recentes" description={stats.pending_orders ? `${stats.pending_orders} aguardando confirmação` : undefined}
+          actions={<Link to="/admin/pedidos" className="text-sm font-semibold text-brand hover:underline">Ver todos</Link>}>
           {orders.length === 0 ? <p className="py-6 text-center text-sm text-ink-500">Nenhum pedido recebido ainda.</p> : (
             <ul className="-my-2 divide-y divide-ink-100">
               {orders.map((o) => (
-                <li key={o.id} className="flex items-center justify-between gap-3 py-3 text-sm">
+                <li key={o.id}><Link to={`/admin/pedidos/${o.id}`} className="-mx-2 flex items-center justify-between gap-3 rounded-lg px-2 py-3 text-sm hover:bg-ink-50">
                   <div className="min-w-0">
                     <p className="font-medium">#{o.order_number} · <span className="font-normal">{o.customer_name}</span></p>
                     <p className="text-xs text-ink-500">{formatDateTime(o.created_at)}</p>
@@ -89,13 +77,13 @@ export default function DashboardPage() {
                     <span className="font-semibold tabular-nums">{formatPrice(o.total)}</span>
                     <Badge tone={ORDER_STATUS[o.status].tone}>{ORDER_STATUS[o.status].label}</Badge>
                   </div>
-                </li>
+                </Link></li>
               ))}
             </ul>
           )}
         </Card>
 
-        <Card title="Movimentações de estoque recentes">
+        <Card title="Movimentações de estoque recentes" actions={<Link to="/admin/estoque/movimentacoes" className="text-sm font-semibold text-brand hover:underline">Ver todas</Link>}>
           {movements.length === 0 ? <p className="py-6 text-center text-sm text-ink-500">Nenhuma movimentação registrada.</p> : (
             <ul className="-my-2 divide-y divide-ink-100">
               {movements.map((m) => (

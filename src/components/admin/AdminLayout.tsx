@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useStore } from '../../context/StoreContext'
-import { BoxIcon, CloseIcon, ExternalIcon, HomeIcon, LogoutIcon, MenuIcon, SettingsIcon, TagIcon, UploadIcon } from '../ui/Icons'
+import { BagIcon, BoxIcon, LayersIcon, CloseIcon, ExternalIcon, HomeIcon, LogoutIcon, MenuIcon, SettingsIcon, TagIcon, UploadIcon } from '../ui/Icons'
 
 const NAV = [
   { to: '/admin', label: 'Painel', icon: HomeIcon, end: true },
+  { to: '/admin/pedidos', label: 'Pedidos', icon: BagIcon },
   { to: '/admin/produtos', label: 'Produtos', icon: BoxIcon },
+  { to: '/admin/estoque', label: 'Estoque', icon: LayersIcon },
   { to: '/admin/categorias', label: 'Categorias', icon: TagIcon },
   { to: '/admin/importar', label: 'Importar / Exportar', icon: UploadIcon },
   { to: '/admin/configuracoes', label: 'Configurações', icon: SettingsIcon },

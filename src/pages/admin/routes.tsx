@@ -15,6 +15,10 @@ const ProductsPage = lazy(() => import('./ProductsPage'))
 const CategoriesPage = lazy(() => import('./CategoriesPage'))
 const ImportExportPage = lazy(() => import('./ImportExportPage'))
 const SettingsPage = lazy(() => import('./SettingsPage'))
+const OrdersPage = lazy(() => import('./OrdersPage'))
+const OrderDetailPage = lazy(() => import('./OrderDetailPage'))
+const InventoryPage = lazy(() => import('./InventoryPage'))
+const MovementsPage = lazy(() => import('./MovementsPage'))
 
 export const adminRoutes: RouteObject = {
   path: 'admin',
@@ -32,6 +36,10 @@ export const adminRoutes: RouteObject = {
           { path: 'produtos', element: <ProductsPage /> },
           { path: 'produtos/novo', element: <ProductForm /> },
           { path: 'produtos/:id', element: <ProductForm /> },
+          { path: 'pedidos', element: <OrdersPage /> },
+          { path: 'pedidos/:id', element: <OrderDetailPage /> },
+          { path: 'estoque', element: <InventoryPage /> },
+          { path: 'estoque/movimentacoes', element: <MovementsPage /> },
           { path: 'categorias', element: <CategoriesPage /> },
           { path: 'importar', element: <ImportExportPage /> },
           { path: 'configuracoes', element: <SettingsPage /> },
