@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
 
-type AdminState = 'unknown' | 'yes' | 'no'
+type AdminState = 'unknown' | 'yes' | 'no' | 'error'
 
 interface AuthState {
   session: Session | null
@@ -12,6 +12,8 @@ interface AuthState {
   recovering: boolean
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  /** Refaz a verificação de administrador (ex.: após falha de conexão). */
+  recheck: () => void
 }
 
 const AuthContext = createContext<AuthState | null>(null)
@@ -45,15 +47,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const userId = session?.user.id
+  const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     if (!userId) { setIsAdmin('unknown'); return }
     let alive = true
     setIsAdmin('unknown')
     checkAdmin(userId)
       .then((ok) => alive && setIsAdmin(ok ? 'yes' : 'no'))
-      .catch(() => alive && setIsAdmin('no'))
+      .catch(() => alive && setIsAdmin('error'))   // falha de rede ≠ acesso negado
     return () => { alive = false }
-  }, [userId])
+  }, [userId, attempt])
+  const recheck = useCallback(() => setAttempt((n) => n + 1), [])
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
@@ -66,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ session, loading, isAdmin, recovering, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, loading, isAdmin, recovering, signIn, signOut, recheck }}>
       {children}
     </AuthContext.Provider>
   )

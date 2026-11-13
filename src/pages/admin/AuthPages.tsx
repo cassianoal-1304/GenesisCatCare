@@ -46,8 +46,8 @@ export function LoginPage() {
 
   if (loading) return <Spinner />
   if (session && isAdmin === 'yes') return <Navigate to={from.startsWith('/admin') ? from : '/admin'} replace />
-  if (session && isAdmin !== 'no') return <Spinner label="Verificando acesso..." />
-  if (session && isAdmin === 'no') return <Navigate to="/admin" replace />
+  if (session && isAdmin === 'unknown') return <Spinner label="Verificando acesso..." />
+  if (session && (isAdmin === 'no' || isAdmin === 'error')) return <Navigate to="/admin" replace />
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()

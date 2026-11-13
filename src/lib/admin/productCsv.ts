@@ -10,7 +10,7 @@ export const COLUMNS = [
   { header: 'id', key: 'id', help: 'Preencha para ATUALIZAR um produto existente. Deixe vazio para criar.' },
   { header: 'nome', key: 'name', help: 'Obrigatório para novos produtos.' },
   { header: 'slug', key: 'slug', help: 'Endereço do produto. Se vazio, é gerado a partir do nome.' },
-  { header: 'categoria', key: 'category', help: 'Nome ou slug de uma categoria existente.' },
+  { header: 'categoria', key: 'category', help: 'Nome ou slug de uma categoria existente. Use - para remover.' },
   { header: 'resumo', key: 'short_description', help: '' },
   { header: 'descricao', key: 'description', help: '' },
   { header: 'indicacoes', key: 'indications', help: '' },
@@ -18,7 +18,7 @@ export const COLUMNS = [
   { header: 'caracteristicas', key: 'features', help: 'Uma por linha.' },
   { header: 'informacoes_adicionais', key: 'additional_info', help: '' },
   { header: 'preco', key: 'price', help: 'Obrigatório para novos. Ex.: 49,90' },
-  { header: 'preco_promocional', key: 'promo_price', help: 'Vazio = sem promoção.' },
+  { header: 'preco_promocional', key: 'promo_price', help: 'Para remover a promoção de um produto existente, escreva -' },
   { header: 'sku', key: 'sku', help: '' },
   { header: 'estoque', key: 'stock', help: 'Apenas produtos sem variações.' },
   { header: 'estoque_minimo', key: 'min_stock', help: '' },
@@ -93,13 +93,13 @@ export interface ImportRow {
   payload: Record<string, unknown> | null
 }
 
-interface ExistingProduct { id: string; name: string; slug: string; sku: string | null; price: number; has_variants: boolean }
+interface ExistingProduct { id: string; name: string; slug: string; sku: string | null; price: number; promo_price: number | null; has_variants: boolean }
 interface CategoryRef { id: string; name: string; slug: string }
 
 async function loadReference() {
   const products: ExistingProduct[] = []
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase.from('products').select('id, name, slug, sku, price, has_variants').order('id').range(from, from + 999)
+    const { data, error } = await supabase.from('products').select('id, name, slug, sku, price, promo_price, has_variants').order('id').range(from, from + 999)
     if (error) throw error
     products.push(...(data as ExistingProduct[]))
     if (!data || data.length < 1000) break
@@ -153,6 +153,13 @@ export async function validateImport(table: string[][]): Promise<{ rows: ImportR
   const rows: ImportRow[] = table.slice(1).map((cells, idx) => {
     const line = idx + 2
     const get = (k: ColKey) => (has(k) ? (cells[colIndex.get(k)!] ?? '').trim() : '')
+    /**
+     * Regra das células (evita apagar dados sem querer em planilhas parciais):
+     *  - vazia  → na atualização mantém o valor atual; na criação fica vazio
+     *  - "-"    → apaga o valor (ex.: remover a promoção ou a categoria)
+     */
+    const CLEAR = '-'
+    const wants = (k: ColKey) => has(k) && (get(k) !== '' || !existing)
     const errors: string[] = []
     const warnings: string[] = []
     const payload: Record<string, unknown> = { _line: line }
@@ -189,9 +196,9 @@ export async function validateImport(table: string[][]): Promise<{ rows: ImportR
     }
 
     // Categoria
-    if (has('category')) {
+    if (wants('category')) {
       const c = get('category')
-      if (!c) payload.category_id = null
+      if (!c || c === CLEAR) payload.category_id = null
       else {
         const cat = findCategory(c)
         if (cat) payload.category_id = cat.id
@@ -199,8 +206,8 @@ export async function validateImport(table: string[][]): Promise<{ rows: ImportR
       }
     }
 
-    // Textos opcionais (vazio = limpar o campo)
-    for (const k of TEXT_KEYS) if (has(k)) payload[k] = get(k) || null
+    // Textos opcionais
+    for (const k of TEXT_KEYS) if (wants(k)) payload[k] = get(k) === CLEAR ? null : get(k) || null
 
     // Preços
     const priceRaw = get('price')
@@ -210,18 +217,24 @@ export async function validateImport(table: string[][]): Promise<{ rows: ImportR
       if (p == null || Number.isNaN(p) || p < 0) errors.push(`Preço inválido: "${priceRaw}".`)
       else { price = p; payload.price = p }
     } else if (!isUpdate) errors.push('Preço obrigatório.')
-    if (has('promo_price')) {
+    let promoFinal: number | null = existing?.promo_price != null ? Number(existing.promo_price) : null
+    if (wants('promo_price')) {
       const raw = get('promo_price')
-      const promo = parseMoney(raw)
+      const promo = raw === CLEAR ? null : parseMoney(raw)
+      promoFinal = promo
       if (promo != null && (Number.isNaN(promo) || promo < 0)) errors.push(`Preço promocional inválido: "${raw}".`)
       else if (promo != null && price != null && promo >= price) errors.push('Preço promocional deve ser menor que o preço.')
       else payload.promo_price = promo
     }
+    // Preço novo menor que a promoção atual (não alterada no arquivo)
+    if (existing && payload.price != null && !('promo_price' in payload) && promoFinal != null && promoFinal >= price!) {
+      errors.push(`O preço promocional atual (${promoFinal.toFixed(2).replace('.', ',')}) ficaria maior que o novo preço. Ajuste também a coluna preco_promocional (ou use "-" para remover).`)
+    }
 
     // SKU
-    if (has('sku')) {
+    if (wants('sku')) {
       const sku = get('sku')
-      if (!sku) payload.sku = null
+      if (!sku || sku === CLEAR) payload.sku = null
       else {
         const owner = bySku.get(sku.toLowerCase())
         if (owner && owner.id !== existing?.id) errors.push(`SKU "${sku}" já pertence a "${owner.name}".`)

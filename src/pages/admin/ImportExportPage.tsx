@@ -161,8 +161,9 @@ export default function ImportExportPage() {
             ))}
           </ul>
           <p className="mt-4 text-xs leading-relaxed text-ink-500">
-            Separador “;” ou “,” (detectado automaticamente). Na atualização, apenas as colunas presentes no arquivo são alteradas;
-            células vazias em campos de texto e preço promocional limpam o valor. Variações e upload de fotos são gerenciados na tela do produto.
+            Separador “;” ou “,” (detectado automaticamente). Na atualização, <strong>células vazias mantêm o valor atual</strong>;
+            para apagar um valor (ex.: remover a promoção, a categoria ou um texto), escreva <code className="rounded bg-ink-100 px-1">-</code> na célula.
+            Variações e envio de fotos são feitos na tela do produto.
           </p>
         </Card>
       </div>

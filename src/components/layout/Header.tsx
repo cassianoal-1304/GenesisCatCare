@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useStore } from '../../context/StoreContext'
 import { useCart } from '../../context/CartContext'
@@ -103,8 +104,9 @@ export function Header() {
         <div className="container-page animate-fade-in pb-3 md:hidden"><SearchForm autoFocus /></div>
       )}
 
-      {/* Menu mobile */}
-      {menuOpen && (
+      {/* Menu mobile — renderizado no <body>: o backdrop-blur do cabeçalho
+          criaria um novo contexto para elementos "fixed" e cortaria a gaveta */}
+      {menuOpen && createPortal(
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <div className="absolute inset-0 animate-fade-in bg-ink-900/40" onClick={() => setMenuOpen(false)} />
           <div className="absolute inset-y-0 left-0 flex w-[84%] max-w-xs flex-col bg-cream shadow-2xl animate-fade-in">
@@ -128,7 +130,8 @@ export function Header() {
               )}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </header>
   )

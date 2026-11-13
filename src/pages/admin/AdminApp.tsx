@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
 import { Outlet, useParams } from 'react-router-dom'
 import { AuthProvider } from '../../context/AuthContext'
 import { ConfirmProvider } from '../../components/admin/Modal'
@@ -12,6 +12,14 @@ export { ForgotPasswordPage, LoginPage, ResetPasswordPage } from './AuthPages'
 
 /** Provedores do painel (autenticação, avisos, confirmações). */
 export default function AdminRoot() {
+  // O painel não deve aparecer em buscadores
+  useEffect(() => {
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex, nofollow'
+    document.head.appendChild(meta)
+    return () => meta.remove()
+  }, [])
   return (
     <AuthProvider>
       <ToastProvider>

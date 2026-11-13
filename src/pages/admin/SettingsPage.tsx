@@ -47,7 +47,7 @@ function ImagePicker({ label, hint, url, file, onPick, onClear, wide }: {
   return (
     <div>
       <span className="mb-1.5 block text-sm font-medium">{label}</span>
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/svg+xml" hidden
+      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" hidden
         onChange={(e) => { const f = e.target.files?.[0]; if (f) onPick(f); e.target.value = '' }} />
       <div className="flex flex-wrap items-center gap-3">
         <div className={`grid shrink-0 place-items-center overflow-hidden rounded-xl bg-ink-100 ring-1 ring-ink-200 ${wide ? 'h-24 w-44' : 'size-24'}`}>
@@ -162,7 +162,7 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <Field label="Nome da loja" required error={errors.store_name}><TextInput {...text('store_name')} maxLength={80} /></Field>
             <Field label="Slogan" hint="Frase curta exibida no banner e no rodapé."><TextInput {...text('tagline')} maxLength={140} /></Field>
-            <ImagePicker label="Logotipo" hint="PNG/SVG com fundo transparente funciona melhor." url={logo.url} file={logo.file}
+            <ImagePicker label="Logotipo" hint="PNG com fundo transparente funciona melhor." url={logo.url} file={logo.file}
               onPick={(f) => setLogo({ ...logo, file: f })} onClear={() => setLogo({ url: null, file: null })} />
             <div className="grid gap-4 sm:grid-cols-2">
               {colorField('primary_color', 'Cor principal', 'Botões e fundo do banner.')}

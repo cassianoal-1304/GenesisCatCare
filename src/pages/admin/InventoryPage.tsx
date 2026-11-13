@@ -174,7 +174,7 @@ export default function InventoryPage() {
 
   const btn = 'rounded-full px-3 py-1.5 text-xs font-semibold transition'
   const actions = (t: Omit<Target, 'mode'>) => (
-    <div className="flex shrink-0 items-center gap-1">
+    <div className="ml-auto flex shrink-0 items-center gap-1">
       <button onClick={() => setTarget({ ...t, mode: 'move' })} className={`${btn} bg-brand text-white hover:brightness-110`} aria-label={`Movimentar estoque de ${t.label}`}>Movimentar</button>
       <button onClick={() => setTarget({ ...t, mode: 'min' })} className={`${btn} border border-ink-200 hover:bg-ink-50`} aria-label={`Estoque mínimo de ${t.label}`}>Mínimo</button>
     </div>
@@ -213,7 +213,7 @@ export default function InventoryPage() {
               <li key={p.id} className="overflow-hidden rounded-2xl bg-white ring-1 ring-ink-100">
                 <div className="flex flex-wrap items-center gap-3 p-3 sm:p-4">
                   <ProductImage src={p.product_images[0]?.url} alt="" className="size-14 shrink-0 rounded-xl" />
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-[60%] flex-1">
                     <Link to={`/admin/produtos/${p.id}`} className="line-clamp-1 font-medium hover:underline">{p.name}</Link>
                     <p className="text-xs text-ink-500">{p.category?.name ?? 'Sem categoria'}{p.sku && ` · ${p.sku}`}{!p.is_active && ' · rascunho'}</p>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs">
@@ -231,7 +231,7 @@ export default function InventoryPage() {
                       const min = v.min_stock ?? p.min_stock
                       return (
                         <li key={v.id} className={`flex flex-wrap items-center gap-3 px-3 py-2.5 text-sm sm:pl-[5.5rem] sm:pr-4 ${v.is_active ? '' : 'opacity-60'}`}>
-                          <div className="min-w-0 flex-1">
+                          <div className="min-w-[60%] flex-1">
                             <span className="font-medium">{v.name}</span>{!v.is_active && <span className="text-xs text-ink-500"> (inativa)</span>}
                             <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-ink-500">
                               <StatusBadge stock={v.stock} min={min} available={p.is_available} />

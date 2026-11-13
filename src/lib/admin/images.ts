@@ -17,7 +17,7 @@ export interface OptimizeOptions {
  */
 export async function optimizeImage(file: File, opts: OptimizeOptions = {}): Promise<Blob> {
   const { maxSize = 1600, quality = 0.82, keepAlpha = false } = opts
-  if (file.type === 'image/svg+xml') return file
+  if (file.type === 'image/svg+xml') throw new Error('Imagens SVG não são aceitas por segurança. Use PNG, JPG ou WebP.')
   if (!ACCEPTED.test(file.type) && file.type !== '') throw new Error(`"${file.name}" não é uma imagem suportada.`)
   if (file.size > MAX_INPUT_BYTES) throw new Error(`"${file.name}" é maior que 20 MB.`)
 
@@ -45,7 +45,7 @@ export async function optimizeImage(file: File, opts: OptimizeOptions = {}): Pro
   return blob
 }
 
-const extOf = (type: string) => ({ 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png', 'image/svg+xml': 'svg' }[type] ?? 'bin')
+const extOf = (type: string) => ({ 'image/webp': 'webp', 'image/jpeg': 'jpg', 'image/png': 'png' }[type] ?? 'bin')
 
 /** Envia para o Storage e retorna o caminho e a URL pública. */
 export async function uploadImage(blob: Blob, folder: string): Promise<{ path: string; url: string }> {

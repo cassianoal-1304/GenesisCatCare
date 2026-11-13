@@ -4,11 +4,20 @@ import { Spinner } from '../ui/Feedback'
 
 /** Protege as rotas do painel: exige sessão ativa E registro na tabela admins. */
 export function RequireAdmin() {
-  const { session, loading, isAdmin, signOut } = useAuth()
+  const { session, loading, isAdmin, signOut, recheck } = useAuth()
   const location = useLocation()
 
   if (loading || (session && isAdmin === 'unknown')) return <div className="min-h-dvh"><Spinner label="Verificando acesso..." /></div>
   if (!session) return <Navigate to="/admin/login" replace state={{ from: location.pathname + location.search }} />
+  if (isAdmin === 'error') {
+    return (
+      <div className="mx-auto max-w-sm px-6 py-24 text-center">
+        <h1 className="font-display text-2xl font-semibold">Não foi possível verificar o acesso</h1>
+        <p className="mt-2 text-sm text-ink-500">Verifique sua conexão com a internet e tente novamente.</p>
+        <button className="btn-primary mt-6" onClick={recheck}>Tentar novamente</button>
+      </div>
+    )
+  }
   if (isAdmin === 'no') {
     return (
       <div className="mx-auto max-w-sm px-6 py-24 text-center">

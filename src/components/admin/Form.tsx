@@ -44,14 +44,14 @@ export function Card({ title, description, children, actions }: {
   title?: string; description?: string; children: ReactNode; actions?: ReactNode
 }) {
   return (
-    <section className="rounded-2xl bg-white p-4 ring-1 ring-ink-100 sm:p-6">
+    <section className="min-w-0 rounded-2xl bg-white p-4 ring-1 ring-ink-100 sm:p-6">
       {(title || actions) && (
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
             {title && <h2 className="font-semibold text-ink-900">{title}</h2>}
             {description && <p className="mt-0.5 text-sm text-ink-500">{description}</p>}
           </div>
-          {actions}
+          {actions && <div className="shrink-0 whitespace-nowrap">{actions}</div>}
         </div>
       )}
       {children}
