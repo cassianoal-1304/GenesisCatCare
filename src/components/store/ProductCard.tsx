@@ -7,6 +7,7 @@ import { ProductImage } from './ProductImage'
 export function ProductCard({ product }: { product: ProductSummary }) {
   const image = product.product_images[0]
   const soldOut = product.available_stock <= 0
+  const unavailable = !product.is_available
   const simplePromo = !product.has_variants && product.promo_price != null
 
   return (
@@ -16,10 +17,10 @@ export function ProductCard({ product }: { product: ProductSummary }) {
     >
       <div className="relative">
         <ProductImage src={image?.url} alt={image?.alt || product.name}
-          className={`aspect-square transition duration-500 group-hover:scale-[1.03] ${soldOut ? 'opacity-60' : ''}`} />
+          className={`aspect-square transition duration-500 group-hover:scale-[1.03] ${soldOut || unavailable ? 'opacity-60' : ''}`} />
         <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1.5">
-          {soldOut ? (
-            <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-[11px] font-semibold text-white">Esgotado</span>
+          {soldOut || unavailable ? (
+            <span className="rounded-full bg-ink-900/85 px-2.5 py-1 text-[11px] font-semibold text-white">{unavailable ? 'Indisponível' : 'Esgotado'}</span>
           ) : product.on_sale && (
             <span className="rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold text-white">
               {simplePromo ? `-${discountPercent(product.price, product.promo_price!)}%` : 'Oferta'}

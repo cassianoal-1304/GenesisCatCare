@@ -12,7 +12,7 @@ function fail(error: { message: string } | null, fallback: string): never {
 
 export const SUMMARY_FIELDS = `
   id, name, slug, short_description, price, promo_price, sort_price, on_sale,
-  available_stock, has_variants, is_featured, created_at,
+  available_stock, has_variants, is_featured, is_available, created_at,
   category:categories(name, slug),
   product_images(url, alt, sort_order)
 `
@@ -86,7 +86,7 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
     .from('products')
     .select(`
       ${SUMMARY_FIELDS},
-      category_id, description, indications, benefits, features, additional_info, sku, stock,
+      category_id, description, indications, benefits, features, additional_info, sku, stock, min_stock,
       product_variants(id, product_id, name, options, sku, price, promo_price, stock, is_active, sort_order)
     `)
     .eq('slug', slug)

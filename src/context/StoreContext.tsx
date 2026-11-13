@@ -18,6 +18,8 @@ function applyTheme(s: StoreSettings) {
   root.style.setProperty('--brand', s.primary_color)
   root.style.setProperty('--accent', s.accent_color)
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', s.primary_color)
+  document.querySelector('meta[name="description"]')?.setAttribute('content', s.meta_description || s.tagline || s.store_name)
+  if (s.logo_url) document.querySelector('link[rel="icon"]')?.setAttribute('href', s.logo_url)
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {

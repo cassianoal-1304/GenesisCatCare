@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { createBrowserRouter, Outlet, RouterProvider } from 'react-router-dom'
 import { StoreProvider } from './context/StoreContext'
 import { CartProvider } from './context/CartContext'
 import { StoreLayout } from './components/layout/StoreLayout'
@@ -7,6 +7,7 @@ import { Spinner } from './components/ui/Feedback'
 import { isSupabaseConfigured } from './lib/supabase'
 import HomePage from './pages/store/HomePage'
 import NotFoundPage from './pages/store/NotFoundPage'
+import { adminRoutes } from './pages/admin/routes'
 
 // Páginas carregadas sob demanda (bundle inicial menor)
 const CatalogPage = lazy(() => import('./pages/store/CatalogPage'))
@@ -27,24 +28,35 @@ function SetupRequired() {
   )
 }
 
+function Root() {
+  return (
+    <StoreProvider>
+      <Suspense fallback={<Spinner />}><Outlet /></Suspense>
+    </StoreProvider>
+  )
+}
+
+function StoreRoot() {
+  return <CartProvider><StoreLayout /></CartProvider>
+}
+
+const router = createBrowserRouter([{
+  element: <Root />,
+  children: [
+    {
+      element: <StoreRoot />,
+      children: [
+        { index: true, element: <HomePage /> },
+        { path: 'catalogo', element: <CatalogPage /> },
+        { path: 'produto/:slug', element: <ProductPage /> },
+        { path: '*', element: <NotFoundPage /> },
+      ],
+    },
+    adminRoutes,
+  ],
+}])
+
 export default function App() {
   if (!isSupabaseConfigured) return <SetupRequired />
-  return (
-    <BrowserRouter>
-      <StoreProvider>
-        <CartProvider>
-          <Suspense fallback={<Spinner />}>
-            <Routes>
-              <Route element={<StoreLayout />}>
-                <Route index element={<HomePage />} />
-                <Route path="catalogo" element={<CatalogPage />} />
-                <Route path="produto/:slug" element={<ProductPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </CartProvider>
-      </StoreProvider>
-    </BrowserRouter>
-  )
+  return <RouterProvider router={router} />
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useCart } from '../../context/CartContext'
+import { useStore } from '../../context/StoreContext'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import { fetchProductBySlug } from '../../lib/api'
 import { hasText, toList } from '../../lib/format'
@@ -179,6 +180,7 @@ export default function ProductPage() {
 
 function ProductView({ product }: { product: ProductDetail }) {
   const { add, open } = useCart()
+  const { settings } = useStore()
   const variants = product.product_variants
   const hasVariants = variants.length > 0
   const sel = useVariantSelection(variants)
@@ -188,7 +190,8 @@ function ProductView({ product }: { product: ProductDetail }) {
 
   const variant = sel.selected
   const stock = hasVariants ? (variant ? variant.stock : product.available_stock) : product.stock
-  const soldOut = hasVariants ? (variant ? variant.stock <= 0 : product.available_stock <= 0) : product.stock <= 0
+  const unavailable = !product.is_available
+  const soldOut = unavailable || (hasVariants ? (variant ? variant.stock <= 0 : product.available_stock <= 0) : product.stock <= 0)
   const { current, original } = priceOf(product, variant)
   const showFrom = hasVariants && !variant && variants.some((v) => priceOf(product, v).current !== current)
 
@@ -289,10 +292,11 @@ function ProductView({ product }: { product: ProductDetail }) {
 
           {/* Disponibilidade */}
           <p className={`mt-6 text-sm font-medium ${soldOut ? 'text-red-600' : 'text-emerald-700'}`}>
-            {soldOut
+            {unavailable ? 'Indisponível no momento'
+              : soldOut
               ? (variant ? 'Esta opção está esgotada' : 'Produto esgotado')
               : (!hasVariants || variant)
-                ? stock <= 5 ? `Últimas ${stock} unidade${stock > 1 ? 's' : ''}!` : 'Em estoque'
+                ? stock <= 5 && settings?.show_stock_count ? `Últimas ${stock} unidade${stock > 1 ? 's' : ''}!` : 'Em estoque'
                 : 'Selecione as opções para ver a disponibilidade'}
           </p>
 
